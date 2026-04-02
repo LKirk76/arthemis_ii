@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "0.0.0.0";
 const ROOT = __dirname;
 
 const MIME_TYPES = {
@@ -34,7 +35,8 @@ function sendFile(filePath, res) {
 }
 
 const server = http.createServer((req, res) => {
-  const url = req.url === "/" ? "/index.html" : req.url;
+  const pathname = new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
+  const url = pathname === "/" ? "/index.html" : pathname;
   const safePath = path.normalize(decodeURIComponent(url)).replace(/^(\.\.[/\\])+/, "");
   const filePath = path.join(ROOT, safePath);
 
@@ -47,6 +49,6 @@ const server = http.createServer((req, res) => {
   sendFile(filePath, res);
 });
 
-server.listen(PORT, () => {
-  console.log(`Artemis II viewer available at http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Artemis II viewer available at http://${HOST}:${PORT}`);
 });
