@@ -2,9 +2,10 @@ import {
   MOON_ORBITAL_PERIOD_DAYS,
   MOON_ORBIT_RADIUS_KM
 } from "../core/constants.js";
-import { parseStateVectorText } from "./parser.js";
+import { parseNasaOemText, parseStateVectorText } from "./parser.js";
 
 export const DEFAULT_DATA_PATH = "/data/mock-state-vectors.csv";
+export const NASA_DATA_PATH = "/api/nasa/oem";
 
 function enrichSamples(samples) {
   if (samples.length === 0) {
@@ -38,5 +39,20 @@ export async function loadDefaultDataset() {
 
 export async function loadDatasetFromFile(file) {
   const rawText = await file.text();
-  return enrichSamples(parseStateVectorText(rawText));
+  const parser = rawText.includes("CCSDS_OEM_VERS") ? parseNasaOemText : parseStateVectorText;
+  return enrichSamples(parser(rawText));
+}
+
+export async function loadOfficialNasaDataset() {
+  const response = await fetch(NASA_DATA_PATH, { cache: "no-store" });
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error || "Falha ao carregar dados oficiais da NASA.");
+  }
+
+  return {
+    samples: enrichSamples(parseNasaOemText(payload.rawText)),
+    sourceUrl: payload.sourceUrl
+  };
 }

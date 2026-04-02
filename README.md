@@ -9,6 +9,7 @@ MVP web e instalavel para visualizar em 2D a trajetoria estimada da Artemis II n
 - Metricas de tempo de missao, distancia da Terra, distancia da Lua e velocidade quando presente
 - Parser para `timestamp,x,y,z` com `vx,vy,vz` opcionais
 - Mock inicial pronto para ser substituido por dados reais
+- Integracao com dados oficiais da NASA via OEM publicado na pagina do Artemis II
 - PWA basica para instalar no iPhone via Safari
 - Deploy simples no Railway
 
@@ -23,6 +24,7 @@ MVP web e instalavel para visualizar em 2D a trajetoria estimada da Artemis II n
 - `src/data/source.js`: carregamento do mock e ponto de troca para dados reais
 - `data/mock-state-vectors.csv`: dataset inicial
 - `server.js`: servidor estatico minimo para local e Railway
+- `server.js`: servidor estatico minimo e proxy do OEM oficial da NASA
 
 ## Rodar localmente
 
@@ -84,21 +86,35 @@ Unidade assumida neste MVP:
 - velocidade em km/s
 - tempo em ISO 8601 UTC
 
-## Onde trocar o mock por dados reais
+## Fonte oficial da NASA
 
-Ponto principal:
+A aplicacao agora tenta carregar por padrao a ephemeris oficial da NASA para Artemis II.
+
+Fluxo:
+
+- `server.js` busca a pagina oficial do Artemis II em tempo real
+- o servidor localiza o ZIP OEM publicado pela NASA
+- o servidor extrai o `.asc` do ZIP e expoe os dados em `/api/nasa/oem`
+- `src/data/source.js` consome esse endpoint e passa o texto para `parseNasaOemText()`
+
+Fonte oficial usada hoje:
+
+- pagina: `https://www.nasa.gov/missions/artemis/artemis-2/track-nasas-artemis-ii-mission-in-real-time/`
+
+## Onde trocar a fonte de dados
 
 - `src/data/source.js`
 
 Hoje:
 
-- `DEFAULT_DATA_PATH` aponta para `data/mock-state-vectors.csv`
+- `loadOfficialNasaDataset()` usa `/api/nasa/oem`
+- `DEFAULT_DATA_PATH` continua apontando para `data/mock-state-vectors.csv` como fallback
 
 Para trocar:
 
-1. Substitua `data/mock-state-vectors.csv` por um arquivo real com o mesmo formato.
-2. Ou altere `DEFAULT_DATA_PATH` para outro arquivo/endpoint estatico.
-3. Se o formato bruto mudar, adapte apenas `parseStateVectorText()` em `src/data/parser.js`.
+1. Se a NASA mudar o link publicado, ajuste a descoberta em `server.js`.
+2. Se o formato bruto mudar, adapte `parseNasaOemText()` em `src/data/parser.js`.
+3. Se quiser outra fonte, troque `loadOfficialNasaDataset()` em `src/data/source.js`.
 
 ## Limites conhecidos
 

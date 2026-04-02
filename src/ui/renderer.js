@@ -98,6 +98,21 @@ export class TrajectoryRenderer {
   drawTrajectory(centerX, centerY, worldScale, index) {
     const { ctx } = this;
     ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(125, 211, 252, 0.28)";
+    ctx.beginPath();
+
+    this.samples.forEach((sample, sampleIndex) => {
+      const point = this.toCanvas(sample, centerX, centerY, worldScale);
+      if (sampleIndex === 0) {
+        ctx.moveTo(point.x, point.y);
+      } else {
+        ctx.lineTo(point.x, point.y);
+      }
+    });
+
+    ctx.stroke();
+
+    ctx.lineWidth = 2.5;
     ctx.strokeStyle = "#7dd3fc";
     ctx.beginPath();
 

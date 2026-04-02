@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-- versao inicial: `v0.01.00`
+- versao atual: `v0.02.00`
 - objetivo: MVP funcional antes de qualquer refinamento visual ou fisico
 - deploy alvo: Railway
 - dispositivo alvo adicional: iPhone via instalacao web
@@ -11,6 +11,7 @@
 
 - entrada esperada: arquivo CSV/TXT com `timestamp,x,y,z` e opcionalmente `vx,vy,vz`
 - mock inicial em `data/mock-state-vectors.csv`
+- fonte oficial atual: OEM publicado pela NASA na pagina do Artemis II, acessado via `/api/nasa/oem`
 - parser central em `src/data/parser.js`
 - fonte default em `src/data/source.js`
 - renderer central em `src/ui/renderer.js`

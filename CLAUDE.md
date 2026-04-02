@@ -17,8 +17,10 @@ Visualizador 2D minimo da trajetoria estimada da Artemis II, com foco em simplic
 - stack sem dependencias externas
 - servidor Node minimo para servir estaticos localmente e no Railway
 - app empacotada como PWA para instalacao via web no iPhone
+- service worker sem cache offline agressivo para reduzir problemas de stale assets em deploy
 - parser isolado em `src/data/parser.js`
 - troca do dataset default isolada em `src/data/source.js`
+- integracao oficial atual da NASA feita pelo endpoint local `/api/nasa/oem`, que consome o OEM publicado na pagina do Artemis II
 
 ## Proximos passos naturais
 

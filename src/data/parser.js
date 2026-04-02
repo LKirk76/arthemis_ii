@@ -61,3 +61,52 @@ export function parseStateVectorText(rawText) {
   samples.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   return samples;
 }
+
+export function parseNasaOemText(rawText) {
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const samples = [];
+
+  lines.forEach((line, index) => {
+    if (
+      line.startsWith("CCSDS_") ||
+      line.startsWith("COMMENT") ||
+      line.startsWith("META_") ||
+      line.includes("=")
+    ) {
+      return;
+    }
+
+    const columns = line.split(/\s+/);
+    if (columns.length < 7) {
+      return;
+    }
+
+    const lineNumber = index + 1;
+    const timestamp = new Date(columns[0]);
+
+    if (Number.isNaN(timestamp.getTime())) {
+      return;
+    }
+
+    samples.push({
+      timestamp: timestamp.toISOString(),
+      x: parseNumber(columns[1], "x", lineNumber),
+      y: parseNumber(columns[2], "y", lineNumber),
+      z: parseNumber(columns[3], "z", lineNumber),
+      vx: parseNumber(columns[4], "vx", lineNumber),
+      vy: parseNumber(columns[5], "vy", lineNumber),
+      vz: parseNumber(columns[6], "vz", lineNumber)
+    });
+  });
+
+  if (!samples.length) {
+    throw new Error("Arquivo OEM da NASA sem samples utilizaveis.");
+  }
+
+  samples.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  return samples;
+}

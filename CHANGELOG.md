@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.02.00 - 2026-04-02
+
+- integracao com a ephemeris oficial da NASA para Artemis II via OEM publicado no site oficial
+- endpoint local `/api/nasa/oem` para buscar o ZIP oficial, extrair o `.asc` e entregar dados utilizaveis ao frontend
+- parser novo para formato CCSDS OEM da NASA
+- carregamento padrao agora tenta usar dados oficiais e faz fallback para mock quando necessario
+- botao para alternar explicitamente para a fonte oficial da NASA
+- service worker simplificado para evitar cache agressivo e reduzir a necessidade de limpar cache manualmente
+- trajetoria completa agora fica visivel desde o carregamento inicial, com destaque para o trecho percorrido
+
 ## v0.01.00 - 2026-04-02
 
 - criacao do MVP web instalavel para visualizar a trajetoria 2D estimada da Artemis II

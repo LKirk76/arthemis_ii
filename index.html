@@ -25,7 +25,7 @@
           </p>
         </div>
         <div class="header-meta">
-          <span class="badge">v0.01.00</span>
+          <span class="badge">v0.02.00</span>
           <span class="badge">PWA</span>
         </div>
       </header>
@@ -45,6 +45,7 @@
               <span>Selecionar arquivo</span>
               <input id="file-input" type="file" accept=".csv,.txt" />
             </label>
+            <button id="nasa-data-button" type="button">Usar NASA oficial</button>
             <button id="reset-data-button" class="secondary-button" type="button">
               Voltar para mock
             </button>
@@ -100,6 +101,10 @@
             <p class="small">
               O parser fica em <code>src/data/parser.js</code> e aceita state vectors no formato
               pedido.
+            </p>
+            <p class="small">
+              Dados oficiais da NASA sao carregados via <code>/api/nasa/oem</code>, que le o OEM
+              publicado na pagina oficial do Artemis II.
             </p>
           </section>
         </aside>

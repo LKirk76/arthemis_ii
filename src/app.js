@@ -1,5 +1,9 @@
 import { APP_VERSION, PLAYBACK_INTERVAL_MS } from "./core/constants.js";
-import { loadDatasetFromFile, loadDefaultDataset } from "./data/source.js";
+import {
+  loadDatasetFromFile,
+  loadDefaultDataset,
+  loadOfficialNasaDataset
+} from "./data/source.js";
 import { buildMetrics } from "./ui/metrics.js";
 import { TrajectoryRenderer } from "./ui/renderer.js";
 
@@ -8,6 +12,7 @@ const playButton = document.querySelector("#play-button");
 const timeSlider = document.querySelector("#time-slider");
 const fileInput = document.querySelector("#file-input");
 const resetDataButton = document.querySelector("#reset-data-button");
+const nasaDataButton = document.querySelector("#nasa-data-button");
 const dataSourceLabel = document.querySelector("#data-source-label");
 
 const metricElements = {
@@ -27,6 +32,22 @@ const state = {
   playbackTimer: null,
   samples: []
 };
+
+function findCurrentIndex(samples) {
+  const now = Date.now();
+  let bestIndex = 0;
+  let bestDelta = Number.POSITIVE_INFINITY;
+
+  samples.forEach((sample, index) => {
+    const delta = Math.abs(new Date(sample.timestamp).getTime() - now);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      bestIndex = index;
+    }
+  });
+
+  return bestIndex;
+}
 
 function syncMetricPanel() {
   const metrics = buildMetrics(state.samples, state.currentIndex);
@@ -67,24 +88,39 @@ function startPlayback() {
   }, PLAYBACK_INTERVAL_MS);
 }
 
-function updateDataset(samples, label) {
+function updateDataset(samples, label, initialIndex = 0) {
   state.samples = samples;
-  state.currentIndex = 0;
+  state.currentIndex = initialIndex;
   timeSlider.min = "0";
   timeSlider.max = String(Math.max(0, samples.length - 1));
-  timeSlider.value = "0";
+  timeSlider.value = String(initialIndex);
   dataSourceLabel.textContent = label;
   renderer.setSamples(samples);
   render();
 }
 
+async function loadNasaData() {
+  const { samples, sourceUrl } = await loadOfficialNasaDataset();
+  updateDataset(
+    samples,
+    `Fonte atual: NASA oficial (${sourceUrl}).`,
+    findCurrentIndex(samples)
+  );
+}
+
 async function bootstrap() {
-  document.title = `Artemis II Tracker v${APP_VERSION}`;
-  const samples = await loadDefaultDataset();
-  updateDataset(samples, "Fonte atual: mock local (`data/mock-state-vectors.csv`).");
+  document.title = `Artemis II Tracker ${APP_VERSION}`;
+
+  try {
+    await loadNasaData();
+  } catch (error) {
+    console.warn(error);
+    const samples = await loadDefaultDataset();
+    updateDataset(samples, "Fonte atual: mock local (`data/mock-state-vectors.csv`).");
+  }
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
   }
 }
 
@@ -123,6 +159,15 @@ resetDataButton.addEventListener("click", async () => {
   stopPlayback();
   const samples = await loadDefaultDataset();
   updateDataset(samples, "Fonte atual: mock local (`data/mock-state-vectors.csv`).");
+});
+
+nasaDataButton.addEventListener("click", async () => {
+  stopPlayback();
+  try {
+    await loadNasaData();
+  } catch (error) {
+    alert(error.message);
+  }
 });
 
 window.addEventListener("resize", () => {
