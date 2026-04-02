@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.03.00 - 2026-04-02
+
+- visualizacao agora reprojeta os vetores 3D no plano orbital estimado em vez de fixar em XY
+- novos controles para centralizar a camera em Terra, Lua ou capsula
+- novo controle de zoom para inspecao local da trajetoria
+- renderer revisado para destacar melhor a trilha completa e o trecho percorrido no enquadramento escolhido
+
 ## v0.02.00 - 2026-04-02
 
 - integracao com a ephemeris oficial da NASA para Artemis II via OEM publicado no site oficial

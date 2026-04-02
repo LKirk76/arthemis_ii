@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-- versao atual: `v0.02.00`
+- versao atual: `v0.03.00`
 - objetivo: MVP funcional antes de qualquer refinamento visual ou fisico
 - deploy alvo: Railway
 - dispositivo alvo adicional: iPhone via instalacao web
@@ -15,6 +15,7 @@
 - parser central em `src/data/parser.js`
 - fonte default em `src/data/source.js`
 - renderer central em `src/ui/renderer.js`
+- visualizacao 2D atual: projecao no plano orbital com centro selecionavel e zoom
 
 ## Limites aceitos nesta fase
 

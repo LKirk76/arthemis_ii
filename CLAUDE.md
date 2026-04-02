@@ -10,7 +10,7 @@ Visualizador 2D minimo da trajetoria estimada da Artemis II, com foco em simplic
 - unidade de posicao em km
 - unidade de velocidade em km/s
 - timestamps em ISO 8601 UTC
-- projecao inicial fixa em XY
+- projecao 2D no plano orbital derivado dos vetores 3D
 
 ## Decisoes atuais
 
@@ -21,10 +21,11 @@ Visualizador 2D minimo da trajetoria estimada da Artemis II, com foco em simplic
 - parser isolado em `src/data/parser.js`
 - troca do dataset default isolada em `src/data/source.js`
 - integracao oficial atual da NASA feita pelo endpoint local `/api/nasa/oem`, que consome o OEM publicado na pagina do Artemis II
+- renderer com centralizacao alternavel em Terra, Lua ou capsula e controle de zoom
 
 ## Proximos passos naturais
 
 - substituir orbita lunar aproximada por efemerides reais da Lua
-- suportar multiplas projecoes 2D
-- adicionar zoom/pan
+- adicionar pan manual
+- refinar a projecao para casos degenerados do plano orbital
 - adicionar validacoes de unidade e timezone no upload de arquivos

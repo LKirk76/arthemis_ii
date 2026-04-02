@@ -21,11 +21,11 @@
           <p class="eyebrow">Artemis II</p>
           <h1>Trajectory Viewer</h1>
           <p class="subtitle">
-            MVP 2D em plano XY, com mock inicial e parser pronto para state vectors reais.
+            MVP 2D no plano orbital, com mock inicial e parser pronto para state vectors reais.
           </p>
         </div>
         <div class="header-meta">
-          <span class="badge">v0.02.00</span>
+          <span class="badge">v0.03.00</span>
           <span class="badge">PWA</span>
         </div>
       </header>
@@ -68,6 +68,23 @@
                 <strong id="current-index">0 / 0</strong>
               </div>
             </div>
+            <div class="view-controls">
+              <label class="field">
+                <span class="metric-label">Centralizar em</span>
+                <select id="center-mode">
+                  <option value="earth">Terra</option>
+                  <option value="moon">Lua</option>
+                  <option value="capsule">Capsula</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="metric-label">Zoom</span>
+                <div class="zoom-row">
+                  <input id="zoom-slider" type="range" min="0.6" max="5" step="0.1" value="1" />
+                  <strong id="zoom-value">1.0x</strong>
+                </div>
+              </label>
+            </div>
           </section>
 
           <section class="card">
@@ -105,6 +122,9 @@
             <p class="small">
               Dados oficiais da NASA sao carregados via <code>/api/nasa/oem</code>, que le o OEM
               publicado na pagina oficial do Artemis II.
+            </p>
+            <p class="small">
+              A visualizacao reprojeta os vetores 3D para um plano orbital 2D antes de desenhar.
             </p>
           </section>
         </aside>

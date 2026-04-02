@@ -1,6 +1,6 @@
 {
   "name": "arthemis-ii-viewer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "MVP web instalavel para visualizar em 2D a trajetoria estimada da Artemis II.",
   "scripts": {

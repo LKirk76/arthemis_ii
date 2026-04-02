@@ -129,8 +129,27 @@ h2 {
   align-items: center;
 }
 
+.view-controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.zoom-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
 button,
-.file-picker span {
+.file-picker span,
+select {
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--accent), #38bdf8);
@@ -139,6 +158,10 @@ button,
   padding: 12px 16px;
   cursor: pointer;
   text-align: center;
+}
+
+select {
+  appearance: none;
 }
 
 .secondary-button {

@@ -14,6 +14,9 @@ const fileInput = document.querySelector("#file-input");
 const resetDataButton = document.querySelector("#reset-data-button");
 const nasaDataButton = document.querySelector("#nasa-data-button");
 const dataSourceLabel = document.querySelector("#data-source-label");
+const centerModeSelect = document.querySelector("#center-mode");
+const zoomSlider = document.querySelector("#zoom-slider");
+const zoomValue = document.querySelector("#zoom-value");
 
 const metricElements = {
   timestamp: document.querySelector("#current-timestamp"),
@@ -30,7 +33,9 @@ const state = {
   currentIndex: 0,
   isPlaying: false,
   playbackTimer: null,
-  samples: []
+  samples: [],
+  centerMode: "earth",
+  zoom: 1
 };
 
 function findCurrentIndex(samples) {
@@ -60,9 +65,15 @@ function syncMetricPanel() {
 }
 
 function render() {
-  renderer.draw(state.currentIndex);
+  renderer.draw(state.currentIndex, {
+    centerMode: state.centerMode,
+    zoom: state.zoom
+  });
   syncMetricPanel();
   timeSlider.value = String(state.currentIndex);
+  centerModeSelect.value = state.centerMode;
+  zoomSlider.value = String(state.zoom);
+  zoomValue.textContent = `${state.zoom.toFixed(1)}x`;
 }
 
 function stopPlayback() {
@@ -168,6 +179,16 @@ nasaDataButton.addEventListener("click", async () => {
   } catch (error) {
     alert(error.message);
   }
+});
+
+centerModeSelect.addEventListener("change", (event) => {
+  state.centerMode = event.target.value;
+  render();
+});
+
+zoomSlider.addEventListener("input", (event) => {
+  state.zoom = Number(event.target.value);
+  render();
 });
 
 window.addEventListener("resize", () => {

@@ -1,21 +1,33 @@
-import {
-  EARTH_RADIUS_KM,
-  MOON_ORBIT_RADIUS_KM,
-  MOON_RADIUS_KM
-} from "../core/constants.js";
-import { interpolateScale } from "../core/math.js";
+import { EARTH_RADIUS_KM, MOON_ORBIT_RADIUS_KM, MOON_RADIUS_KM } from "../core/constants.js";
+import { computeOrbitalPlaneBasis, interpolateScale, projectToPlane } from "../core/math.js";
 
 export class TrajectoryRenderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.samples = [];
+    this.projectedSamples = [];
     this.scaleBaseKm = MOON_ORBIT_RADIUS_KM;
+    this.orbitalPlane = computeOrbitalPlaneBasis([]);
   }
 
   setSamples(samples) {
     this.samples = samples;
-    this.scaleBaseKm = Math.max(MOON_ORBIT_RADIUS_KM, interpolateScale(samples));
+    this.orbitalPlane = computeOrbitalPlaneBasis(samples);
+    this.projectedSamples = samples.map((sample) => ({
+      ...sample,
+      projected: projectToPlane(sample, this.orbitalPlane),
+      moonProjected: projectToPlane(
+        { x: sample.moonX, y: sample.moonY, z: sample.moonZ ?? 0 },
+        this.orbitalPlane
+      )
+    }));
+    this.scaleBaseKm = Math.max(
+      MOON_ORBIT_RADIUS_KM,
+      interpolateScale(
+        this.projectedSamples.flatMap((sample) => [sample.projected, sample.moonProjected])
+      )
+    );
     this.resize();
   }
 
@@ -27,37 +39,58 @@ export class TrajectoryRenderer {
     this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
-  toCanvas(point, centerX, centerY, worldScale) {
+  toCanvas(point, centerX, centerY, worldScale, focusPoint) {
     return {
-      x: centerX + point.x * worldScale,
-      y: centerY - point.y * worldScale
+      x: centerX + (point.x - focusPoint.x) * worldScale,
+      y: centerY - (point.y - focusPoint.y) * worldScale
     };
   }
 
-  draw(index) {
+  resolveFocusPoint(index, centerMode) {
+    const current = this.projectedSamples[index];
+    if (!current) {
+      return { x: 0, y: 0 };
+    }
+
+    if (centerMode === "moon") {
+      return current.moonProjected;
+    }
+
+    if (centerMode === "capsule") {
+      return current.projected;
+    }
+
+    return { x: 0, y: 0 };
+  }
+
+  draw(index, options = {}) {
     const { ctx } = this;
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     const centerX = width / 2;
     const centerY = height / 2;
     const padding = 40;
-    const worldScale = (Math.min(width, height) / 2 - padding) / this.scaleBaseKm;
+    const zoom = options.zoom ?? 1;
+    const worldScale = ((Math.min(width, height) / 2 - padding) / this.scaleBaseKm) * zoom;
+    const focusPoint = this.resolveFocusPoint(index, options.centerMode ?? "earth");
 
     ctx.clearRect(0, 0, width, height);
-    this.drawBackground(width, height, centerX, centerY, worldScale);
+    this.drawBackground(width, height, centerX, centerY, worldScale, focusPoint);
 
-    if (!this.samples.length) {
+    if (!this.projectedSamples.length) {
       return;
     }
 
-    this.drawTrajectory(centerX, centerY, worldScale, index);
-    this.drawMoon(centerX, centerY, worldScale, index);
-    this.drawEarth(centerX, centerY, worldScale);
-    this.drawShip(centerX, centerY, worldScale, index);
+    this.drawGrid(width, height, centerX, centerY);
+    this.drawTrajectory(centerX, centerY, worldScale, index, focusPoint);
+    this.drawMoon(centerX, centerY, worldScale, index, focusPoint);
+    this.drawEarth(centerX, centerY, worldScale, focusPoint);
+    this.drawShip(centerX, centerY, worldScale, index, focusPoint);
   }
 
-  drawBackground(width, height, centerX, centerY, worldScale) {
+  drawBackground(width, height, centerX, centerY, worldScale, focusPoint) {
     const { ctx } = this;
+    const earth = this.toCanvas({ x: 0, y: 0 }, centerX, centerY, worldScale, focusPoint);
 
     ctx.fillStyle = "#09111f";
     ctx.fillRect(0, 0, width, height);
@@ -65,7 +98,7 @@ export class TrajectoryRenderer {
     ctx.strokeStyle = "rgba(125, 211, 252, 0.12)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, MOON_ORBIT_RADIUS_KM * worldScale, 0, Math.PI * 2);
+    ctx.arc(earth.x, earth.y, MOON_ORBIT_RADIUS_KM * worldScale, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.beginPath();
@@ -76,18 +109,48 @@ export class TrajectoryRenderer {
     ctx.stroke();
   }
 
-  drawEarth(centerX, centerY, worldScale) {
+  drawGrid(width, height, centerX, centerY) {
     const { ctx } = this;
+    const spacing = 72;
+
+    ctx.strokeStyle = "rgba(125, 211, 252, 0.08)";
+    ctx.lineWidth = 1;
+
+    for (let x = centerX % spacing; x <= width; x += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    for (let y = centerY % spacing; y <= height; y += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+  }
+
+  drawEarth(centerX, centerY, worldScale, focusPoint) {
+    const { ctx } = this;
+    const earth = this.toCanvas({ x: 0, y: 0 }, centerX, centerY, worldScale, focusPoint);
+
     ctx.fillStyle = "#4ade80";
     ctx.beginPath();
-    ctx.arc(centerX, centerY, Math.max(6, EARTH_RADIUS_KM * worldScale), 0, Math.PI * 2);
+    ctx.arc(earth.x, earth.y, Math.max(6, EARTH_RADIUS_KM * worldScale), 0, Math.PI * 2);
     ctx.fill();
   }
 
-  drawMoon(centerX, centerY, worldScale, index) {
+  drawMoon(centerX, centerY, worldScale, index, focusPoint) {
     const { ctx } = this;
-    const current = this.samples[index];
-    const moon = this.toCanvas({ x: current.moonX, y: current.moonY }, centerX, centerY, worldScale);
+    const current = this.projectedSamples[index];
+    const moon = this.toCanvas(
+      current.moonProjected,
+      centerX,
+      centerY,
+      worldScale,
+      focusPoint
+    );
 
     ctx.fillStyle = "#f8fafc";
     ctx.beginPath();
@@ -95,14 +158,15 @@ export class TrajectoryRenderer {
     ctx.fill();
   }
 
-  drawTrajectory(centerX, centerY, worldScale, index) {
+  drawTrajectory(centerX, centerY, worldScale, index, focusPoint) {
     const { ctx } = this;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(125, 211, 252, 0.28)";
+
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(125, 211, 252, 0.22)";
     ctx.beginPath();
 
-    this.samples.forEach((sample, sampleIndex) => {
-      const point = this.toCanvas(sample, centerX, centerY, worldScale);
+    this.projectedSamples.forEach((sample, sampleIndex) => {
+      const point = this.toCanvas(sample.projected, centerX, centerY, worldScale, focusPoint);
       if (sampleIndex === 0) {
         ctx.moveTo(point.x, point.y);
       } else {
@@ -112,12 +176,12 @@ export class TrajectoryRenderer {
 
     ctx.stroke();
 
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.75;
     ctx.strokeStyle = "#7dd3fc";
     ctx.beginPath();
 
-    this.samples.slice(0, index + 1).forEach((sample, sampleIndex) => {
-      const point = this.toCanvas(sample, centerX, centerY, worldScale);
+    this.projectedSamples.slice(0, index + 1).forEach((sample, sampleIndex) => {
+      const point = this.toCanvas(sample.projected, centerX, centerY, worldScale, focusPoint);
       if (sampleIndex === 0) {
         ctx.moveTo(point.x, point.y);
       } else {
@@ -128,9 +192,15 @@ export class TrajectoryRenderer {
     ctx.stroke();
   }
 
-  drawShip(centerX, centerY, worldScale, index) {
+  drawShip(centerX, centerY, worldScale, index, focusPoint) {
     const { ctx } = this;
-    const point = this.toCanvas(this.samples[index], centerX, centerY, worldScale);
+    const point = this.toCanvas(
+      this.projectedSamples[index].projected,
+      centerX,
+      centerY,
+      worldScale,
+      focusPoint
+    );
 
     ctx.fillStyle = "#fb7185";
     ctx.beginPath();
