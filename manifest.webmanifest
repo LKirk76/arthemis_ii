@@ -1,0 +1,17 @@
+{
+  "name": "Artemis II Trajectory Viewer",
+  "short_name": "Artemis II",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09111f",
+  "theme_color": "#09111f",
+  "description": "Visualizador 2D instalavel da trajetoria estimada da Artemis II.",
+  "icons": [
+    {
+      "src": "/assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
